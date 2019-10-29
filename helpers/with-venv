@@ -1,17 +1,16 @@
-APPLICATION_ROOT="$(dirname $0)/..";
+APPLICATION_ROOT=${APPLICATION_ROOT:-"$(dirname $0)/.."};
 DOT_ENV_FILE=${DOT_ENV_FILE:-"$APPLICATION_ROOT/.env"};
 DOT_ENV_LOCAL_FILE=${DOT_ENV_LOCAL_FILE:-"$APPLICATION_ROOT/.env.local"};
-RESET_VENV=${RESET_VENV:-"false"};
-VENV_DIR="$APPLICATION_ROOT/.venv";
+TMP_DIR=${TMP_DIR:-"$APPLICATION_ROOT/tmp"};
+VENV_DIR=${VENV_DIR:-"$APPLICATION_ROOT/.venv"};
 
 
 _activate_venv () {
-  _deactivate_venv;
   export LANG="en_US.UTF-8" LC_ALL="en_US.UTF-8";
   source "$VENV_DIR/bin/activate";
 }
 
-_create_venv_if_applicable () {
+_create_venv () {
   if [ ! -e "$VENV_DIR" ]; then
     python -m venv $VENV_DIR;
   fi
@@ -27,26 +26,13 @@ _deactivate_venv () {
   fi
 }
 
-_load_env_files () {
-  if [ -e "$DOT_ENV_FILE" ]; then
-    source $DOT_ENV_FILE;
+_install_dependencies () {
+  install_dependencies_lockfile=$TMP_DIR/install_dependencies.lock;
+  if [ -e "$install_dependencies_lockfile" ] && [ "$FORCE" != "true" ]; then
+    return;
   fi
 
-  if [ -e "$DOT_ENV_LOCAL_FILE" ]; then
-    source $DOT_ENV_LOCAL_FILE;
-  fi
-}
-
-_run () {
-  _activate_venv;
-
-  python $APPLICATION_ROOT/list/cli.py $@;
-}
-
-_setup () {
-  _activate_venv;
-
-  pip install --upgrade pip setuptools;
+  pip install pip setuptools;
 
   requirements_first_file="$APPLICATION_ROOT/requirements-first.txt";
   if [ -e "$requirements_first_file" ]; then
@@ -68,28 +54,24 @@ _setup () {
   if [ -e "$requirements_last_file" ]; then
     pip install --requirement "$requirements_last_file";
   fi
+
+  touch $install_dependencies_lockfile;
 }
 
-_reset_venv_if_applicable () {
-  if [ "$RESET_VENV" = "true" ]; then
-    if [ -e $VENV_DIR ]; then
-      echo "Clearing an existing venv..."
-      _deactivate_venv;
-      rm -r $VENV_DIR;
-    fi
+_load_env_files () {
+  if [ -e "$DOT_ENV_FILE" ]; then
+    source $DOT_ENV_FILE;
+  fi
+
+  if [ -e "$DOT_ENV_LOCAL_FILE" ]; then
+    source $DOT_ENV_LOCAL_FILE;
   fi
 }
 
-run () {
-  _deactivate_venv;
-  _load_env_files;
-  _create_venv_if_applicable;
-  _run $@;
+_remove_lockfiles () {
+  rm -rf $TMP_DIR/*.lock;
 }
 
-setup () {
-  _deactivate_venv;
-  _load_env_files;
-  _create_venv_if_applicable;
-  _setup;
+_remove_venv () {
+  rm -rf $VENV_DIR;
 }

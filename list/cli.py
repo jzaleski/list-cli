@@ -1,7 +1,6 @@
 import os
 import getpass
 import re
-import sys
 import time
 import uuid
 
@@ -32,8 +31,12 @@ class Processor(object):
         REMOVED_BUCKET,
     }
 
+    def __init__(self, *args):
+        self._args = args
+        self._ensure_database_exists()
+
     @property
-    def database(self):
+    def _database(self):
         if not hasattr(self, '_database_'):
             self._database_ = self._get_database()
         return self._database_
@@ -56,20 +59,20 @@ class Processor(object):
             self._user_ = self._get_user()
         return self._user_
 
-    def process(self, *args):
-        self._ensure_database_exists()
+    def process(self):
+        args = self._args
         if not args:
             return self._render(self.ADDED_BUCKET)
-        if re.match(self.BUCKET_PATTERN, args[0]):
+        elif re.match(self.BUCKET_PATTERN, args[0]):
             return self._render(args[0][0])
-        if not re.match(self.INDEX_PATTERN, args[0]):
+        elif not re.match(self.INDEX_PATTERN, args[0]):
             return self._add(message=' '.join(args))
         index = int(args[0]) - 1
-        if index < 0:
-            return False
-        if not args[1:]:
-            return False
-        if not re.match(self.OPERATION_PATTERN, args[1]):
+        if (
+            index < 0 or
+            not args[1:] or
+            not re.match(self.OPERATION_PATTERN, args[1])
+        ):
             return False
         operation = args[1]
         if operation in self.ADD_OPERATIONS:
@@ -105,7 +108,7 @@ class Processor(object):
             'bucket': self.ADDED_BUCKET,
             'message': message,
         }
-        self.database.append(datum)
+        self._database.append(datum)
         return self._write_database()
 
     def _done(self, index=None):
@@ -146,13 +149,13 @@ class Processor(object):
         if database_dirname and not os.path.isdir(database_dirname):
             os.makedirs(database_dirname)
         if not os.path.isfile(database_file_path):
-            open(self.database_file_path, 'w').close()
+            open(database_file_path, 'w').close()
 
     def _get_bucket(self, bucket):
         return sorted(
             (
                 datum
-                for datum in self.database
+                for datum in self._database
                 if datum['bucket'] == bucket
             ),
             key=lambda datum: datum['updated_timestamp']
@@ -283,7 +286,7 @@ class Processor(object):
 
     def _write_database(self):
         with open(self._database_file_path, 'w') as database_file:
-            for datum in self.database:
+            for datum in self._database:
                 database_file.write(
                     "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s%s" % (
                         datum['id'],
@@ -298,9 +301,3 @@ class Processor(object):
                     )
                 )
         return True
-
-
-if __name__ == '__main__':
-    processor = Processor()
-    result = processor.process(*sys.argv[1:])
-    sys.exit(0 if result else 1)
