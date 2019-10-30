@@ -1,3 +1,6 @@
+__version__ = '0.0.1'
+
+
 import os
 import getpass
 import re
@@ -5,7 +8,7 @@ import time
 import uuid
 
 
-class Processor(object):
+class Processor():
     ADDED_BUCKET = 'a'
     ADD_OPERATIONS = {'a', 'add'}
     BUCKET_PATTERN = r'^(a|added|d|done|h|handed_off|m|moved|r|removed)$'
@@ -206,17 +209,17 @@ class Processor(object):
         return database
 
     def _get_database_file_path(self):
-        list_name = os.getenv('LIST_NAME', 'LIST')
-        assert(list_name)
-        env_var = '%s_DATABASE' % list_name
-        if os.getenv(env_var):
-            return os.getenv(env_var)
-        if os.path.isfile(list_name):
-            return list_name
+        database_file_path = os.getenv('DATABASE_FILE_PATH')
+        if database_file_path:
+            return database_file_path
+        database_name = os.getenv('DATABASE_NAME', 'LIST')
+        assert(database_name)
+        if os.path.isfile(database_name):
+            return database_name
         return os.path.join(
             os.getenv('HOME'),
             '.list',
-            list_name
+            database_name
         )
 
     def _get_timestamp(self):
