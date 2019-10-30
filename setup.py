@@ -18,6 +18,7 @@ setup(
     url='https://github.com/jzaleski/list-cli',
     license='MIT',
     description='List Management Application (CLI)',
+    long_description='List Management Application (CLI)',
     author='Jonathan W. Zaleski',
     author_email='JonathanZaleski@gmail.com',
     packages=find_packages(),
@@ -35,5 +36,11 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Topic :: Software Development',
+    ],
+    keywords=[
+        'list',
+        'list-cli',
+        'task'
+        'todo',
     ],
 )
