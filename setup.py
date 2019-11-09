@@ -1,24 +1,18 @@
-from ast import literal_eval as ast_literal_eval
-from re import compile as re_compile
 from setuptools import find_packages, setup
 
 
 PKG_NAME = 'list-cli'
-
-
-_version_re = re_compile(r'__version__\s+=\s+(.*)')
-with open('list/cli.py'.format(PKG_NAME), 'rb') as f:
-    version = str(ast_literal_eval(_version_re.search(
-        f.read().decode('utf-8')).group(1)))
+PKG_DESCRIPTION = 'List Management Application (CLI)'
+PKG_VERSION = open('VERSION'.format(PKG_NAME), 'r').read().rstrip()
 
 
 setup(
     name=PKG_NAME,
-    version=version,
+    version=PKG_VERSION,
     url='https://github.com/jzaleski/list-cli',
     license='MIT',
-    description='List Management Application (CLI)',
-    long_description='List Management Application (CLI)',
+    description=PKG_DESCRIPTION,
+    long_description=PKG_DESCRIPTION,
     author='Jonathan W. Zaleski',
     author_email='JonathanZaleski@gmail.com',
     packages=find_packages(),

@@ -1,9 +1,6 @@
 from sys import argv, exit
 
-try:
-    from list.cli import Processor
-except ModuleNotFoundError:
-    from cli import Processor
+from list.cli import Processor
 
 
 def main():

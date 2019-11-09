@@ -1,11 +1,17 @@
-__version__ = '0.0.3'
-
-
 import os
 import getpass
 import re
 import time
 import uuid
+
+
+__version__ = open(
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '..',
+        'VERSION'
+    )
+).read().rstrip()
 
 
 class Processor():
