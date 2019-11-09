@@ -1,10 +1,15 @@
+from ast import literal_eval as ast_literal_eval
+from re import compile as re_compile
 from setuptools import find_packages, setup
 
 
 PKG_NAME = 'list-cli'
 PKG_DESCRIPTION = 'List Management Application (CLI)'
-PKG_VERSION = open('VERSION'.format(PKG_NAME), 'r').read().rstrip()
 
+_version_re = re_compile(r'__version__\s+=\s+(.*)')
+with open('list/cli.py'.format(PKG_NAME), 'rb') as f:
+    PKG_VERSION = str(ast_literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
 
 setup(
     name=PKG_NAME,

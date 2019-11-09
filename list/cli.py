@@ -5,13 +5,7 @@ import time
 import uuid
 
 
-__version__ = open(
-    os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '..',
-        'VERSION'
-    )
-).read().rstrip()
+__version__ = '0.0.5'
 
 
 class Processor():
