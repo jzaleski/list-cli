@@ -5,7 +5,7 @@ import time
 import uuid
 
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 
 class Processor():

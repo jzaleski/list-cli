@@ -7,7 +7,7 @@ PKG_NAME = 'list-cli'
 PKG_DESCRIPTION = 'List Management Application (CLI)'
 
 _version_re = re_compile(r'__version__\s+=\s+(.*)')
-with open('list/cli.py'.format(PKG_NAME), 'rb') as f:
+with open('list/cli.py', 'rb') as f:
     PKG_VERSION = str(ast_literal_eval(_version_re.search(
         f.read().decode('utf-8')).group(1)))
 
@@ -34,6 +34,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Software Development',
     ],
     keywords=[

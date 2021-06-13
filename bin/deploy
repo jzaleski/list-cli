@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -e;
+
+source $(dirname $0)/../helpers/with-venv;
+
+_activate_venv;
+_load_env_files;
+
+cd $(dirname $0)/..;
+
+release_version=$(
+  cat list/cli.py | \
+  grep "__version__" | \
+  awk '{ print $3 }' | \
+  tr -d "'"
+);
+
+if [[ ! "${release_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Could not determine release-version";
+  exit 1;
+fi
+
+bin/twine upload dist/list-cli-${release_version}.tar.gz;

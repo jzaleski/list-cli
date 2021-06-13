@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -e;
+
+source $(dirname $0)/../helpers/with-venv;
+
+_activate_venv;
+_load_env_files;
+
+flake8_cmd=$(which flake8 2> /dev/null || echo -n);
+if [ -z "$flake8_cmd" ]; then
+  echo "Could not locate the \"flake8\" binary";
+  exit 1;
+fi
+
+$flake8_cmd "$@";
