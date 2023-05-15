@@ -6,7 +6,7 @@ from os import (
 from os.path import isfile, join as path_join
 from sys import argv, exit
 
-from processors import MultiProcessor, Processor
+from list_cli.processors import MultiProcessor, Processor
 
 
 def _env_list_value(key, default=''):
