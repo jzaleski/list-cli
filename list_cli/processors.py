@@ -22,10 +22,12 @@ class MultiProcessor():
     def process(self, *args):
         had_error = False
         for index, database_file_path in enumerate(self._database_file_paths):
-            output_file_paths = self._output_file_paths
-            if index > 0 and output_file_paths:
-                print()
-            if not Processor(database_file_path, output_file_paths).process(*args):
+            processor = Processor(
+                database_file_path,
+                database_index=index,
+                output_file_path=self._output_file_paths
+            )
+            if not processor.process(*args):
                 had_error = True
         return not had_error
 
@@ -58,10 +60,12 @@ class Processor():
     def __init__(
         self,
         database_file_path,
+        database_index=0,
         output_file_path=False
     ):
         self._database_file_path = database_file_path
         self._ensure_database_exists()
+        self._database_index = database_index
         self._output_file_path = output_file_path
 
     @property
@@ -214,17 +218,18 @@ class Processor():
                 message = line_parts[7]
                 if not message:
                     continue
-                datum = {
-                    'id': UUID(id_),
-                    'parent_id': UUID(parent_id),
-                    'created_by_user': created_by_user,
-                    'updated_by_user': updated_by_user,
-                    'created_timestamp': int(created_timestamp),
-                    'updated_timestamp': int(updated_timestamp),
-                    'bucket': bucket,
-                    'message': message,
-                }
-                database.append(datum)
+                database.append(
+                    {
+                        'id': UUID(id_),
+                        'parent_id': UUID(parent_id),
+                        'created_by_user': created_by_user,
+                        'updated_by_user': updated_by_user,
+                        'created_timestamp': int(created_timestamp),
+                        'updated_timestamp': int(updated_timestamp),
+                        'bucket': bucket,
+                        'message': message,
+                    }
+                )
         return database
 
     def _get_timestamp(self):
@@ -277,7 +282,7 @@ class Processor():
         if not bucket:
             return bucket != self.ADDED_BUCKET
         if self._output_file_path:
-            print(f'{self._database_file_path}:\n')
+            print(f'{linesep if self._database_index else ""}{self._database_file_path}:{linesep}')
         for datum_index, datum in enumerate(bucket):
             print('%3d. %s' % (datum_index + 1, datum['message']))
         return True
