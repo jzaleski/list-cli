@@ -12,4 +12,4 @@ _install_dependencies;
 
 cd $(dirname $0)/..;
 
-python list/__main__.py $@;
+python list_cli/__main__.py $@;

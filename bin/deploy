@@ -10,7 +10,7 @@ _load_env_files;
 cd $(dirname $0)/..;
 
 release_version=$(
-  cat list/cli.py | \
+  cat list_cli/__version__.py | \
   grep "__version__" | \
   awk '{ print $3 }' | \
   tr -d "'"

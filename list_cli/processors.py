@@ -1,18 +1,40 @@
-import os
-import getpass
-import re
-import time
-import uuid
+from getpass import getuser
+from os import linesep, makedirs
+from os.path import (
+    dirname,
+    isdir,
+    isfile,
+)
+from re import match
+from time import time
+from uuid import UUID, uuid1
 
 
-__version__ = '0.0.6'
+class MultiProcessor():
+    def __init__(
+        self,
+        database_file_paths,
+        output_file_paths=True
+    ):
+        self._database_file_paths = database_file_paths
+        self._output_file_paths = output_file_paths
+
+    def process(self, *args):
+        had_error = False
+        for index, database_file_path in enumerate(self._database_file_paths):
+            output_file_paths = self._output_file_paths
+            if index > 0 and output_file_paths:
+                print()
+            if not Processor(database_file_path, output_file_paths).process(*args):
+                had_error = True
+        return not had_error
 
 
 class Processor():
     ADDED_BUCKET = 'a'
     ADD_OPERATIONS = {'a', 'add'}
     BUCKET_PATTERN = r'^(a|added|d|done|h|handed_off|m|moved|r|removed)$'
-    DEFAULT_PARENT_ID = uuid.UUID('00000000-0000-0000-0000-000000000000')
+    DEFAULT_PARENT_ID = UUID('00000000-0000-0000-0000-000000000000')
     DONE_BUCKET = 'd'
     DONE_OPERATIONS = {'d', 'done'}
     EDIT_OPERATIONS = {'e', 'edit'}
@@ -21,8 +43,7 @@ class Processor():
     INDEX_PATTERN = r'^[0-9]+$'
     MOVE_OPERATIONS = {'m', 'move'}
     MOVED_BUCKET = 'm'
-    OPERATION_PATTERN = \
-        r'^(a|add|d|done|e|edit|h|handoff|m|move|r|remove|t|touch)$'
+    OPERATION_PATTERN = r'^(a|add|d|done|e|edit|h|handoff|m|move|r|remove|t|touch)$'
     REMOVED_BUCKET = 'r'
     REMOVE_OPERATIONS = {'r', 'remove'}
     TOUCH_OPERATIONS = {'t', 'touch'}
@@ -34,21 +55,20 @@ class Processor():
         REMOVED_BUCKET,
     }
 
-    def __init__(self, *args):
-        self._args = args
+    def __init__(
+        self,
+        database_file_path,
+        output_file_path=False
+    ):
+        self._database_file_path = database_file_path
         self._ensure_database_exists()
+        self._output_file_path = output_file_path
 
     @property
     def _database(self):
         if not hasattr(self, '_database_'):
             self._database_ = self._get_database()
         return self._database_
-
-    @property
-    def _database_file_path(self):
-        if not hasattr(self, '_database_file_path_'):
-            self._database_file_path_ = self._get_database_file_path()
-        return self._database_file_path_
 
     @property
     def _timestamp(self):
@@ -62,19 +82,18 @@ class Processor():
             self._user_ = self._get_user()
         return self._user_
 
-    def process(self):
-        args = self._args
+    def process(self, *args):
         if not args:
             return self._render(self.ADDED_BUCKET)
-        elif re.match(self.BUCKET_PATTERN, args[0]):
+        elif match(self.BUCKET_PATTERN, args[0]):
             return self._render(args[0][0])
-        elif not re.match(self.INDEX_PATTERN, args[0]):
+        elif not match(self.INDEX_PATTERN, args[0]):
             return self._add(message=' '.join(args))
         index = int(args[0]) - 1
         if (
             index < 0 or
             not args[1:] or
-            not re.match(self.OPERATION_PATTERN, args[1])
+            not match(self.OPERATION_PATTERN, args[1])
         ):
             return False
         operation = args[1]
@@ -102,7 +121,7 @@ class Processor():
         if not message:
             return False
         datum = {
-            'id': uuid.uuid1(),
+            'id': uuid1(),
             'parent_id': parent_id or self.DEFAULT_PARENT_ID,
             'created_by_user': self._user,
             'updated_by_user': self._user,
@@ -148,10 +167,10 @@ class Processor():
 
     def _ensure_database_exists(self):
         database_file_path = self._database_file_path
-        database_dirname = os.path.dirname(database_file_path)
-        if database_dirname and not os.path.isdir(database_dirname):
-            os.makedirs(database_dirname)
-        if not os.path.isfile(database_file_path):
+        database_dirname = dirname(database_file_path)
+        if database_dirname and not isdir(database_dirname):
+            makedirs(database_dirname)
+        if not isfile(database_file_path):
             open(database_file_path, 'w').close()
 
     def _get_bucket(self, bucket):
@@ -196,8 +215,8 @@ class Processor():
                 if not message:
                     continue
                 datum = {
-                    'id': uuid.UUID(id_),
-                    'parent_id': uuid.UUID(parent_id),
+                    'id': UUID(id_),
+                    'parent_id': UUID(parent_id),
                     'created_by_user': created_by_user,
                     'updated_by_user': updated_by_user,
                     'created_timestamp': int(created_timestamp),
@@ -208,25 +227,11 @@ class Processor():
                 database.append(datum)
         return database
 
-    def _get_database_file_path(self):
-        database_file_path = os.getenv('DATABASE_FILE_PATH')
-        if database_file_path:
-            return database_file_path
-        database_name = os.getenv('DATABASE_NAME', 'LIST')
-        assert(database_name)
-        if os.path.isfile(database_name):
-            return database_name
-        return os.path.join(
-            os.getenv('HOME'),
-            '.list',
-            database_name
-        )
-
     def _get_timestamp(self):
-        return int(time.time())
+        return int(time())
 
     def _get_user(self):
-        return getpass.getuser()
+        return getuser()
 
     def _handoff(self, index=None):
         bucket = self._get_bucket(self.ADDED_BUCKET)
@@ -270,7 +275,9 @@ class Processor():
     def _render(self, bucket):
         bucket = self._get_bucket(bucket)
         if not bucket:
-            return False
+            return bucket != self.ADDED_BUCKET
+        if self._output_file_path:
+            print(f'{self._database_file_path}:\n')
         for datum_index, datum in enumerate(bucket):
             print('%3d. %s' % (datum_index + 1, datum['message']))
         return True
@@ -300,7 +307,7 @@ class Processor():
                         datum['updated_timestamp'],
                         datum['bucket'],
                         datum['message'],
-                        os.linesep,
+                        linesep,
                     )
                 )
         return True

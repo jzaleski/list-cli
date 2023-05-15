@@ -7,7 +7,7 @@ PKG_NAME = 'list-cli'
 PKG_DESCRIPTION = 'List Management Application (CLI)'
 
 _version_re = re_compile(r'__version__\s+=\s+(.*)')
-with open('list/cli.py', 'rb') as f:
+with open('list_cli/__version__.py', 'rb') as f:
     PKG_VERSION = str(ast_literal_eval(_version_re.search(
         f.read().decode('utf-8')).group(1)))
 
@@ -22,19 +22,24 @@ setup(
     author_email='JonathanZaleski@gmail.com',
     packages=find_packages(),
     install_requires=[],
-    entry_points={'console_scripts': ['list-cli=list.__main__:main']},
+    entry_points={'console_scripts': ['list-cli=list_cli.__main__:main']},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.1',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Topic :: Software Development',
     ],
     keywords=[
