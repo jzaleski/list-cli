@@ -6,7 +6,10 @@ VENV_DIR=${VENV_DIR:-"$APPLICATION_ROOT/.venv"};
 
 
 _activate_venv () {
-  export LANG=${LANG:-"en_US.UTF-8"} PYTHONPATH="$(dirname $0)/../.";
+  export \
+    LANG=${LANG:-"en_US.UTF-8"} \
+    LC_ALL=${LC_ALL:-"en_US.UTF-8"} \
+    PYTHONPATH="$(dirname $0)/../.";
   source "$VENV_DIR/bin/activate";
 }
 
@@ -21,6 +24,7 @@ _deactivate_venv () {
     deactivate > /dev/null 2>&1 || true;
     unset \
       LANG \
+      LC_ALL \
       PYTHONPATH \
       VIRTUAL_ENV;
   fi
