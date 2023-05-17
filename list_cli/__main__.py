@@ -5,15 +5,16 @@ from os import (
 )
 from os.path import isfile, join as path_join
 from sys import argv, exit
+from typing import List
 
 from list_cli.processors import MultiProcessor, Processor
 
 
-def _env_list_value(key, default=''):
+def _env_list_value(key, default='') -> List[str]:
     return list(filter(None, getenv(key, default).split(',')))
 
 
-def _get_database_file_paths():
+def _get_database_file_paths() -> List[str]:
     database_file_paths = _env_list_value('DATABASE_FILE_PATHS')
     if database_file_paths:
         return database_file_paths
@@ -38,17 +39,18 @@ def _get_database_file_paths():
     return database_file_paths
 
 
-def _get_processor():
-    database_file_paths = _get_database_file_paths()
-    if not database_file_paths:
-        exit(1)
-    elif len(database_file_paths) > 1:
+def _get_processor(database_file_paths: List[str]) -> MultiProcessor | Processor:
+    if len(database_file_paths) > 1:
         return MultiProcessor(database_file_paths)
     return Processor(database_file_paths[0])
 
 
 def main():
-    if not _get_processor().process(*argv[1:]):
+    database_file_paths = _get_database_file_paths()
+    if not database_file_paths:
+        exit(1)
+    process_result = _get_processor(database_file_paths).process(*argv[1:])
+    if process_result.had_error:
         exit(1)
 
 
