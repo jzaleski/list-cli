@@ -167,12 +167,12 @@ class Processor(BaseProcessor):
             open(database_file_path, 'w').close()
         return True
 
-    def _get_bucket(self, bucket) -> list:
+    def _get_bucket(self, bucket_id) -> list:
         return sorted(
             (
                 datum
                 for datum in self._database
-                if datum['bucket'] == bucket
+                if datum['bucket'] == bucket_id
             ),
             key=lambda datum: datum['updated_timestamp']
         )
@@ -267,10 +267,10 @@ class Processor(BaseProcessor):
             return SuccessResult() if self._write_database() else ErrorResult()
         return ErrorResult()
 
-    def _render(self, bucket) -> Result:
-        bucket = self._get_bucket(bucket)
+    def _render(self, bucket_id) -> Result:
+        bucket = self._get_bucket(bucket_id)
         if not bucket:
-            return Result(had_error=bucket != self.ADDED_BUCKET, had_output=False)
+            return Result(had_error=bucket_id != self.ADDED_BUCKET, had_output=False)
         if self._output_file_path:
             print(f'{self._database_file_path}:{linesep}')
         for datum_index, datum in enumerate(bucket):
