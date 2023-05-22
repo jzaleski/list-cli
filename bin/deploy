@@ -21,4 +21,6 @@ if [[ ! "${release_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 1;
 fi
 
-bin/twine upload dist/list-cli-${release_version}.tar.gz;
+bin/twine upload \
+  --config-file $(pwd)/.pypirc \
+  dist/list-cli-${release_version}.tar.gz;
