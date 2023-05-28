@@ -130,14 +130,16 @@ class Processor(BaseProcessor):
         bucket = self._get_bucket(self.ADDED_BUCKET)
         if not bucket:
             return ErrorResult()
+        if index is None or index >= len(bucket):
+            return ErrorResult()
         for datum_index, datum in enumerate(bucket):
             if datum_index != index:
                 continue
             datum['updated_by_user'] = self._user
             datum['updated_timestamp'] = self._timestamp
             datum['bucket'] = self.DONE_BUCKET
-            return SuccessResult() if self._write_database() else ErrorResult()
-        return ErrorResult()
+            break
+        return SuccessResult() if self._write_database() else ErrorResult()
 
     def _edit(
         self,
@@ -149,14 +151,16 @@ class Processor(BaseProcessor):
         bucket = self._get_bucket(self.ADDED_BUCKET)
         if not bucket:
             return ErrorResult()
+        if index is None or index >= len(bucket):
+            return ErrorResult()
         for datum_index, datum in enumerate(bucket):
             if datum_index != index:
                 continue
             datum['updated_by_user'] = self._user
             datum['updated_timestamp'] = self._timestamp
             datum['message'] = message
-            return SuccessResult() if self._write_database() else ErrorResult()
-        return ErrorResult()
+            break
+        return SuccessResult() if self._write_database() else ErrorResult()
 
     def _ensure_database_exists(self) -> bool:
         database_file_path = self._database_file_path
@@ -232,18 +236,20 @@ class Processor(BaseProcessor):
         bucket = self._get_bucket(self.ADDED_BUCKET)
         if not bucket:
             return ErrorResult()
+        if index is None or index >= len(bucket):
+            return ErrorResult()
         for datum_index, datum in enumerate(bucket):
             if datum_index != index:
                 continue
             datum['updated_by_user'] = self._user
             datum['updated_timestamp'] = self._timestamp
             datum['bucket'] = self.HANDED_OFF_BUCKET
-            return SuccessResult() if self._write_database() else ErrorResult()
-        return ErrorResult()
+            break
+        return SuccessResult() if self._write_database() else ErrorResult()
 
     def _move(self, index=None) -> Result:
         bucket = self._get_bucket(self.ADDED_BUCKET)
-        if not bucket:
+        if not bucket or index >= len(bucket):
             return ErrorResult()
         for datum_index, datum in enumerate(bucket):
             if datum_index != index:
@@ -251,12 +257,14 @@ class Processor(BaseProcessor):
             datum['updated_by_user'] = self._user
             datum['updated_timestamp'] = self._timestamp
             datum['bucket'] = self.MOVED_BUCKET
-            return SuccessResult() if self._write_database() else ErrorResult()
-        return ErrorResult()
+            break
+        return SuccessResult() if self._write_database() else ErrorResult()
 
     def _remove(self, index=None) -> Result:
         bucket = self._get_bucket(self.ADDED_BUCKET)
         if not bucket:
+            return ErrorResult()
+        if index is None or index >= len(bucket):
             return ErrorResult()
         for datum_index, datum in enumerate(bucket):
             if datum_index != index:
@@ -264,8 +272,8 @@ class Processor(BaseProcessor):
             datum['updated_by_user'] = self._user
             datum['updated_timestamp'] = self._timestamp
             datum['bucket'] = self.REMOVED_BUCKET
-            return SuccessResult() if self._write_database() else ErrorResult()
-        return ErrorResult()
+            break
+        return SuccessResult() if self._write_database() else ErrorResult()
 
     def _render(self, bucket_id) -> Result:
         bucket = self._get_bucket(bucket_id)
@@ -281,13 +289,14 @@ class Processor(BaseProcessor):
         bucket = self._get_bucket(self.ADDED_BUCKET)
         if not bucket:
             return ErrorResult()
+        if index is None or index >= len(bucket):
+            return ErrorResult()
         for datum_index, datum in enumerate(bucket):
-            if datum_index != index:
+            if datum_index == index:
                 continue
             datum['updated_by_user'] = self._user
             datum['updated_timestamp'] = self._timestamp
-            return SuccessResult() if self._write_database() else ErrorResult()
-        return ErrorResult()
+        return SuccessResult() if self._write_database() else ErrorResult()
 
     def _write_database(self) -> bool:
         with open(self._database_file_path, 'w') as database_file:
