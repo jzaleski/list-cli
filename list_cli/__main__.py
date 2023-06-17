@@ -7,7 +7,11 @@ from os.path import isfile, join as path_join
 from sys import argv, exit
 from typing import List
 
-from list_cli.processors import MultiProcessor, Processor
+from list_cli.processors import (
+    BaseProcessor,
+    MultiProcessor,
+    Processor
+)
 
 
 def _env_list_value(key, default='') -> List[str]:
@@ -39,7 +43,7 @@ def _get_database_file_paths() -> List[str]:
     return database_file_paths
 
 
-def _get_processor(database_file_paths: List[str]) -> MultiProcessor | Processor:
+def _get_processor(database_file_paths: List[str]) -> BaseProcessor:
     if len(database_file_paths) > 1:
         return MultiProcessor(database_file_paths)
     return Processor(database_file_paths[0])
